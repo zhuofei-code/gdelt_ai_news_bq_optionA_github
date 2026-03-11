@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use this repository, please cite it using the metadata below."
+title: "GDELT AI News BigQuery: Option A (10 Outlets per Country)"
+type: software
+authors:
+  - family-names: "Lu"
+    given-names: "Zhuofei"
+    alias: "zhuofei-code"
+repository-code: "https://github.com/zhuofei-code/gdelt_ai_news_bq_optionA_github"
+abstract: "A GitHub-ready release package for a BigQuery-based monthly panel of AI news coverage across 11 countries from June 2018 to June 2025 using 10 outlets per country."
+keywords:
+  - "GDELT"
+  - "BigQuery"
+  - "AI news"
+  - "media analysis"
+  - "cross-national panel"
+date-released: 2026-03-11

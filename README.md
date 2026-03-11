@@ -46,6 +46,12 @@ The packaged script defaults to `config/sources_v2_optionA.yaml` and writes new 
 
 You will still need valid Google Cloud credentials and a billable BigQuery project. No credentials are included in this package.
 
+## Citation
+
+GitHub will surface citation metadata from `CITATION.cff`.
+
+If you use this package in a paper, report, or derivative dataset, cite the repository and note the released source design as `Option A (10 outlets per country)`.
+
 ## Status Note
 
 The `Option A` specialist outlets are recorded as a working research configuration. Some small-market specialist domains remain better described as `provisional_pre_profiling`, especially in Iceland, Belgium, Portugal, Austria, and Slovenia.
