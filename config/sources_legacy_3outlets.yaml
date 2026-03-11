@@ -1,0 +1,34 @@
+countries:
+  IS:
+    name: Iceland
+    domains: [ruv.is, mbl.is, visir.is]
+  FI:
+    name: Finland
+    domains: [yle.fi, hs.fi, iltasanomat.fi]
+  BE:
+    name: Belgium
+    domains: [hln.be, lesoir.be, vrt.be]
+  FR:
+    name: France
+    domains: [lemonde.fr, lefigaro.fr, franceinfo.fr]
+  PT:
+    name: Portugal
+    domains: [rtp.pt, publico.pt, observador.pt]
+  AT:
+    name: Austria
+    domains: [orf.at, derstandard.at, krone.at]
+  CZ:
+    name: Czech Republic
+    domains: [blesk.cz, aktualne.cz, ceskatelevize.cz]
+  PL:
+    name: Poland
+    domains: [tvn24.pl, onet.pl, gazeta.pl]
+  HU:
+    name: Hungary
+    domains: [telex.hu, 24.hu, hvg.hu]
+  SI:
+    name: Slovenia
+    domains: [24ur.com, rtvslo.si, delo.si]
+  UK:
+    name: United Kingdom
+    domains: [bbc.co.uk, theguardian.com, telegraph.co.uk]

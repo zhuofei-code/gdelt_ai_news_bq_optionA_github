@@ -1,0 +1,319 @@
+metadata:
+  version: optionA_5mainstream_5specialist_provisional
+  created_utc: 2026-03-11T00:00:00Z
+  selection_status: provisional_pre_profiling
+  note: >
+    This file records a 10-outlet-per-country candidate set for Option A
+    (5 mainstream + 5 specialist). Mainstream domains follow the March 2026
+    domain screening report. Specialist domains were selected heuristically
+    and must still pass SQL host profiling before production extraction.
+  profiling_requirements:
+    active_months_min: 70
+    active_months_total: 84
+    median_monthly_records_min: 30
+    field_concentration_share_min: 0.35
+    maximum_single_month_share_max: 0.35
+    duplicate_content_ratio_max: 0.25
+countries:
+  IS:
+    name: Iceland
+    selection_status: provisional_high_risk_small_market
+    domains:
+      - ruv.is
+      - mbl.is
+      - visir.is
+      - dv.is
+      - stundin.is
+      - vb.is
+      - startupiceland.com
+      - laeknabladid.is
+      - samorka.is
+      - kjarninn.is
+    mainstream_domains:
+      - ruv.is
+      - mbl.is
+      - visir.is
+      - dv.is
+      - stundin.is
+    specialist_domains:
+      business_finance: vb.is
+      technology_digital: startupiceland.com
+      health_biomedicine: laeknabladid.is
+      energy_climate_industry: samorka.is
+      law_policy_regulation: kjarninn.is
+    notes:
+      - Iceland has the thinnest specialist media market in this sample.
+      - Technology, energy, and policy candidates should be treated as the first
+        profiling priority before any final run.
+  FI:
+    name: Finland
+    selection_status: provisional_medium_confidence
+    domains:
+      - yle.fi
+      - hs.fi
+      - iltasanomat.fi
+      - mtvuutiset.fi
+      - is.fi
+      - kauppalehti.fi
+      - tivi.fi
+      - mediuutiset.fi
+      - energiauutiset.fi
+      - edilex.fi
+    mainstream_domains:
+      - yle.fi
+      - hs.fi
+      - iltasanomat.fi
+      - mtvuutiset.fi
+      - is.fi
+    specialist_domains:
+      business_finance: kauppalehti.fi
+      technology_digital: tivi.fi
+      health_biomedicine: mediuutiset.fi
+      energy_climate_industry: energiauutiset.fi
+      law_policy_regulation: edilex.fi
+  BE:
+    name: Belgium
+    selection_status: provisional_mixed_local_and_regional
+    domains:
+      - hln.be
+      - lesoir.be
+      - vrt.be
+      - nieuwsblad.be
+      - lalibre.be
+      - lecho.be
+      - datanews.knack.be
+      - medi-sphere.be
+      - energynews.pro
+      - legalnews.be
+    mainstream_domains:
+      - hln.be
+      - lesoir.be
+      - vrt.be
+      - nieuwsblad.be
+      - lalibre.be
+    specialist_domains:
+      business_finance: lecho.be
+      technology_digital: datanews.knack.be
+      health_biomedicine: medi-sphere.be
+      energy_climate_industry: energynews.pro
+      law_policy_regulation: legalnews.be
+    notes:
+      - energynews.pro is a regional energy outlet used as a Belgium-facing
+        specialist fallback and should be checked carefully in profiling.
+  FR:
+    name: France
+    selection_status: provisional_high_confidence
+    domains:
+      - lemonde.fr
+      - lefigaro.fr
+      - franceinfo.fr
+      - liberation.fr
+      - ouest-france.fr
+      - lesechos.fr
+      - numerama.com
+      - lequotidiendumedecin.fr
+      - actu-environnement.com
+      - dalloz-actualite.fr
+    mainstream_domains:
+      - lemonde.fr
+      - lefigaro.fr
+      - franceinfo.fr
+      - liberation.fr
+      - ouest-france.fr
+    specialist_domains:
+      business_finance: lesechos.fr
+      technology_digital: numerama.com
+      health_biomedicine: lequotidiendumedecin.fr
+      energy_climate_industry: actu-environnement.com
+      law_policy_regulation: dalloz-actualite.fr
+  PT:
+    name: Portugal
+    selection_status: provisional_mixed_local_and_regional
+    domains:
+      - rtp.pt
+      - publico.pt
+      - observador.pt
+      - sicnoticias.pt
+      - jornaldenegocios.pt
+      - eco.sapo.pt
+      - tek.sapo.pt
+      - newsfarma.pt
+      - ambienteonline.pt
+      - iberianlawyer.com
+    mainstream_domains:
+      - rtp.pt
+      - publico.pt
+      - observador.pt
+      - sicnoticias.pt
+      - jornaldenegocios.pt
+    specialist_domains:
+      business_finance: eco.sapo.pt
+      technology_digital: tek.sapo.pt
+      health_biomedicine: newsfarma.pt
+      energy_climate_industry: ambienteonline.pt
+      law_policy_regulation: iberianlawyer.com
+    notes:
+      - iberianlawyer.com is an Iberian legal-market publication and should be
+        treated as a regional fallback rather than a Portugal-only outlet.
+  AT:
+    name: Austria
+    selection_status: provisional_medium_confidence
+    domains:
+      - orf.at
+      - derstandard.at
+      - krone.at
+      - kurier.at
+      - diepresse.com
+      - trend.at
+      - futurezone.at
+      - aerztezeitung.at
+      - industriemagazin.at
+      - manz.at
+    mainstream_domains:
+      - orf.at
+      - derstandard.at
+      - krone.at
+      - kurier.at
+      - diepresse.com
+    specialist_domains:
+      business_finance: trend.at
+      technology_digital: futurezone.at
+      health_biomedicine: aerztezeitung.at
+      energy_climate_industry: industriemagazin.at
+      law_policy_regulation: manz.at
+    notes:
+      - manz.at is an established legal publisher with online legal-current-affairs
+        content, but its GDELT continuity still needs checking.
+  CZ:
+    name: Czech Republic
+    selection_status: provisional_high_confidence
+    domains:
+      - blesk.cz
+      - aktualne.cz
+      - ceskatelevize.cz
+      - irozhlas.cz
+      - denik.cz
+      - e15.cz
+      - lupa.cz
+      - zdravezpravy.cz
+      - oenergetice.cz
+      - pravniprostor.cz
+    mainstream_domains:
+      - blesk.cz
+      - aktualne.cz
+      - ceskatelevize.cz
+      - irozhlas.cz
+      - denik.cz
+    specialist_domains:
+      business_finance: e15.cz
+      technology_digital: lupa.cz
+      health_biomedicine: zdravezpravy.cz
+      energy_climate_industry: oenergetice.cz
+      law_policy_regulation: pravniprostor.cz
+  PL:
+    name: Poland
+    selection_status: provisional_high_confidence
+    domains:
+      - tvn24.pl
+      - onet.pl
+      - gazeta.pl
+      - rp.pl
+      - wyborcza.pl
+      - pb.pl
+      - spidersweb.pl
+      - rynekzdrowia.pl
+      - wysokienapiecie.pl
+      - prawo.pl
+    mainstream_domains:
+      - tvn24.pl
+      - onet.pl
+      - gazeta.pl
+      - rp.pl
+      - wyborcza.pl
+    specialist_domains:
+      business_finance: pb.pl
+      technology_digital: spidersweb.pl
+      health_biomedicine: rynekzdrowia.pl
+      energy_climate_industry: wysokienapiecie.pl
+      law_policy_regulation: prawo.pl
+  HU:
+    name: Hungary
+    selection_status: provisional_medium_confidence
+    domains:
+      - telex.hu
+      - 24.hu
+      - hvg.hu
+      - index.hu
+      - portfolio.hu
+      - vg.hu
+      - hwsw.hu
+      - medicalonline.hu
+      - energiaoldal.hu
+      - jogiforum.hu
+    mainstream_domains:
+      - telex.hu
+      - 24.hu
+      - hvg.hu
+      - index.hu
+      - portfolio.hu
+    specialist_domains:
+      business_finance: vg.hu
+      technology_digital: hwsw.hu
+      health_biomedicine: medicalonline.hu
+      energy_climate_industry: energiaoldal.hu
+      law_policy_regulation: jogiforum.hu
+  SI:
+    name: Slovenia
+    selection_status: provisional_mixed_local_and_info-service
+    domains:
+      - 24ur.com
+      - rtvslo.si
+      - delo.si
+      - dnevnik.si
+      - vecer.com
+      - finance.si
+      - monitor.si
+      - medicina-danes.si
+      - energetika.net
+      - iusinfo.si
+    mainstream_domains:
+      - 24ur.com
+      - rtvslo.si
+      - delo.si
+      - dnevnik.si
+      - vecer.com
+    specialist_domains:
+      business_finance: finance.si
+      technology_digital: monitor.si
+      health_biomedicine: medicina-danes.si
+      energy_climate_industry: energetika.net
+      law_policy_regulation: iusinfo.si
+    notes:
+      - iusinfo.si behaves more like a legal information portal than a classic
+        newsroom and should be profiled for article continuity before use.
+  UK:
+    name: United Kingdom
+    selection_status: provisional_high_confidence
+    domains:
+      - bbc.co.uk
+      - theguardian.com
+      - telegraph.co.uk
+      - independent.co.uk
+      - dailymail.co.uk
+      - ft.com
+      - theregister.com
+      - hsj.co.uk
+      - businessgreen.com
+      - lawgazette.co.uk
+    mainstream_domains:
+      - bbc.co.uk
+      - theguardian.com
+      - telegraph.co.uk
+      - independent.co.uk
+      - dailymail.co.uk
+    specialist_domains:
+      business_finance: ft.com
+      technology_digital: theregister.com
+      health_biomedicine: hsj.co.uk
+      energy_climate_industry: businessgreen.com
+      law_policy_regulation: lawgazette.co.uk

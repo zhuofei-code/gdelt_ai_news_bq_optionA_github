@@ -1,0 +1,165 @@
+artificial intelligence
+machine learning
+deep learning
+neural network
+large language model
+generative ai
+foundation model
+transformer model
+prompt engineering
+retrieval augmented generation
+fine tuning
+ai regulation
+algorithmic bias
+ai ethics
+automated decision making
+ai governance
+synthetic data
+ai safety
+chatgpt
+openai
+claude
+gemini
+copilot
+intelligence artificielle
+apprentissage automatique
+apprentissage profond
+réseau neuronal
+modèle de langage
+grand modèle de langage
+modèle génératif
+ia générative
+éthique de l’ia
+régulation de l’ia
+künstliche intelligenz
+maschinelles lernen
+neuronales netz
+sprachmodell
+großes sprachmodell
+generative ki
+ki regulierung
+ki ethik
+inteligência artificial
+aprendizagem automática
+aprendizagem profunda
+rede neural
+ia generativa
+modelo de linguagem
+regulação da ia
+sztuczna inteligencja
+uczenie maszynowe
+głębokie uczenie
+sieć neuronowa
+generatywna si
+umělá inteligence
+strojové učení
+generativní ai
+mesterséges intelligencia
+gépi tanulás
+generatív mi
+tekoäly
+koneoppiminen
+umetna inteligenca
+gpt-5
+gpt 5
+gpt-5.1
+gpt 5.1
+gpt-5.2
+gpt 5.2
+gpt-4
+gpt 4
+gpt-4.1
+gpt 4.1
+gpt-4o
+gpt 4o
+gpt-4.5
+gpt 4.5
+codex
+gpt-5-codex
+gpt-5.1-codex
+gpt-5.2-codex
+anthropic
+claude opus
+claude sonnet
+claude haiku
+google gemini
+gemma
+palm
+palm 2
+microsoft copilot
+phi-2
+phi 2
+phi-3
+phi 3
+phi-4
+phi 4
+llama
+llama 2
+llama 3
+llama 3.1
+llama 3.2
+llama 4
+mistral
+mistral large
+mistral small
+mixtral
+mixtral 8x7b
+mixtral 8x22b
+pixtral
+grok
+grok 1
+grok 2
+grok 2.5
+grok 3
+deepseek
+deepseek-llm
+deepseek r1
+deepseek-r1
+deepseek v3
+deepseek-v3
+deepseek v2
+deepseek-v2
+qwen
+qwen2
+qwen 2
+qwen2.5
+qwen 2.5
+qwen3
+qwen 3
+hunyuan
+腾讯混元
+ernie
+ernie bot
+文心一言
+讯飞星火
+sparkdesk
+glm
+chatglm
+glm-4
+kimi
+moonshot
+01.ai
+baichuan
+baichuan2
+doubao
+cohere
+command
+command r
+command r+
+command r plus
+ai21
+jurassic
+jamba
+dbrx
+falcon
+stablelm
+stable lm
+amazon nova
+nova micro
+nova lite
+nova pro
+bloom
+mpt
+olmo
+pythia
+bert
