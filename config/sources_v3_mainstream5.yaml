@@ -1,0 +1,97 @@
+metadata:
+  version: mainstream5_only
+  created_utc: 2026-03-11T00:00:00Z
+  selection_status: production_ready_mainstream_only
+  note: >
+    This file records a mainstream-only source design with 5 general-interest
+    outlets per country and no specialist outlets. The domains are taken from
+    the mainstream selections already documented in Option A.
+countries:
+  IS:
+    name: Iceland
+    domains:
+      - ruv.is
+      - mbl.is
+      - visir.is
+      - dv.is
+      - stundin.is
+  FI:
+    name: Finland
+    domains:
+      - yle.fi
+      - hs.fi
+      - iltasanomat.fi
+      - mtvuutiset.fi
+      - is.fi
+  BE:
+    name: Belgium
+    domains:
+      - hln.be
+      - lesoir.be
+      - vrt.be
+      - nieuwsblad.be
+      - lalibre.be
+  FR:
+    name: France
+    domains:
+      - lemonde.fr
+      - lefigaro.fr
+      - franceinfo.fr
+      - liberation.fr
+      - ouest-france.fr
+  PT:
+    name: Portugal
+    domains:
+      - rtp.pt
+      - publico.pt
+      - observador.pt
+      - sicnoticias.pt
+      - jornaldenegocios.pt
+  AT:
+    name: Austria
+    domains:
+      - orf.at
+      - derstandard.at
+      - krone.at
+      - kurier.at
+      - diepresse.com
+  CZ:
+    name: Czech Republic
+    domains:
+      - blesk.cz
+      - aktualne.cz
+      - ceskatelevize.cz
+      - irozhlas.cz
+      - denik.cz
+  PL:
+    name: Poland
+    domains:
+      - tvn24.pl
+      - onet.pl
+      - gazeta.pl
+      - rp.pl
+      - wyborcza.pl
+  HU:
+    name: Hungary
+    domains:
+      - telex.hu
+      - 24.hu
+      - hvg.hu
+      - index.hu
+      - portfolio.hu
+  SI:
+    name: Slovenia
+    domains:
+      - 24ur.com
+      - rtvslo.si
+      - delo.si
+      - dnevnik.si
+      - vecer.com
+  UK:
+    name: United Kingdom
+    domains:
+      - bbc.co.uk
+      - theguardian.com
+      - telegraph.co.uk
+      - independent.co.uk
+      - dailymail.co.uk
