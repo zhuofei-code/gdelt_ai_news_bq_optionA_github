@@ -33,6 +33,7 @@ An additional comparison variant is also included:
 - `docs/keyword_strategy_report.md`: production keyword strategy used in BigQuery scanning
 - `docs/keyword_strategy_improvement_plan.md`: roadmap for reducing language-related undercount in non-English coverage
 - `docs/comparison_optionA_v1_vs_v2_keyword_strategy.md`: same-day `v1` versus `v2` keyword-strategy sensitivity report
+- `docs/comparison_mainstream5_v1_vs_v2_keyword_strategy.md`: same-day `mainstream5` `v1` versus `v2` keyword-strategy sensitivity report
 - `docs/run_summary_optionA.md`: public-facing summary of the completed run
 - `results/gdelt_ai_country_monthly_201806_202506_optionA.csv`: final combined monthly panel
 - `results/gdelt_ai_country_monthly_201806_202506_mainstream5.csv`: mainstream-only comparison panel
@@ -40,6 +41,8 @@ An additional comparison variant is also included:
 - `results/gdelt_ai_country_monthly_201806_202604_mainstream5.csv`: updated mainstream-only panel through `2026-03`
 - `results/gdelt_ai_country_monthly_201806_202604_optionA_v1rerun.csv`: same-day `v1` baseline rerun for keyword sensitivity testing
 - `results/gdelt_ai_country_monthly_201806_202604_optionA_v2.csv`: `v2` seed rerun with country-aware multilingual keyword rules
+- `results/gdelt_ai_country_monthly_201806_202604_mainstream5_v1rerun.csv`: same-day `mainstream5` `v1` baseline rerun
+- `results/gdelt_ai_country_monthly_201806_202604_mainstream5_v2.csv`: `mainstream5` rerun with `v2` seed keyword rules
 - `docs/monthly_ranking_chart.html`: interactive month-by-month ranking race using the latest panel data
 
 ## Run Summary
