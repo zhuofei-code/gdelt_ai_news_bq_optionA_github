@@ -29,6 +29,7 @@ An additional comparison variant is also included:
 - `config/sources_v2_optionA.yaml`: the `11 x 10` outlet source file used in the final run
 - `config/sources_v3_mainstream5.yaml`: the `11 x 5` mainstream-only source file
 - `docs/source_selection_optionA.md`: recorded mainstream and specialist outlet choices by country
+- `docs/keyword_strategy_report.md`: production keyword strategy used in BigQuery scanning
 - `docs/run_summary_optionA.md`: public-facing summary of the completed run
 - `results/gdelt_ai_country_monthly_201806_202506_optionA.csv`: final combined monthly panel
 - `results/gdelt_ai_country_monthly_201806_202506_mainstream5.csv`: mainstream-only comparison panel
