@@ -71,6 +71,14 @@ AI_ABBREV_REGEX = r"(?:^|[^a-z0-9])(?:ai|a\.i\.)(?:[^a-z0-9]|$)"
 # Optional explicit project override (otherwise uses ADC default project)
 BIGQUERY_PROJECT = os.getenv("BQ_PROJECT", "")
 
+start_date_override = os.getenv("START_DATE_UTC", "").strip()
+if start_date_override:
+    START_DATE_UTC = start_date_override
+
+end_date_override = os.getenv("END_DATE_UTC", "").strip()
+if end_date_override:
+    END_DATE_UTC = end_date_override
+
 # Optional runtime overrides for one-country-at-a-time execution.
 country_filter_override = os.getenv("COUNTRY_FILTER", "").strip()
 if country_filter_override:
@@ -102,12 +110,21 @@ if output_suffix_raw:
     safe_suffix = re.sub(r"[^A-Za-z0-9._-]+", "_", output_suffix_raw)
     if safe_suffix:
         OUTPUT_SUFFIX = f"_{safe_suffix}"
+
+
+def make_window_tag(start_utc: str, end_utc: str) -> str:
+    start_dt = datetime.strptime(start_utc[:10], "%Y-%m-%d")
+    end_dt = datetime.strptime(end_utc[:10], "%Y-%m-%d")
+    return f"{start_dt.strftime('%Y%m')}_{end_dt.strftime('%Y%m')}"
+
+
+OUTPUT_WINDOW_TAG = make_window_tag(START_DATE_UTC, END_DATE_UTC)
 KEYWORDS_STRICT_PATH = CONFIG_DIR / "keywords_strict.txt"
 KEYWORDS_CONTEXT_PATH = CONFIG_DIR / "keywords_context.txt"
 SQL_PATH = SCRIPT_DIR / "bq_queries.sql"
 OUTPUT_DIR = PACKAGE_ROOT / "results"
-OUTPUT_PATH = OUTPUT_DIR / f"gdelt_ai_country_monthly_201806_202506{OUTPUT_SUFFIX}.csv"
-LOG_PATH = OUTPUT_DIR / f"fullrun_log_201806_202506{OUTPUT_SUFFIX}.txt"
+OUTPUT_PATH = OUTPUT_DIR / f"gdelt_ai_country_monthly_{OUTPUT_WINDOW_TAG}{OUTPUT_SUFFIX}.csv"
+LOG_PATH = OUTPUT_DIR / f"fullrun_log_{OUTPUT_WINDOW_TAG}{OUTPUT_SUFFIX}.txt"
 
 
 def load_sources() -> dict[str, Any]:
@@ -1375,7 +1392,7 @@ def main() -> None:
             country_df=country_query_df,
         )
 
-        country_output = OUTPUT_DIR / f"{country_code.lower()}_monthly{OUTPUT_SUFFIX}.csv"
+        country_output = OUTPUT_DIR / f"{country_code.lower()}_monthly_{OUTPUT_WINDOW_TAG}{OUTPUT_SUFFIX}.csv"
         panel_df.to_csv(country_output, index=False)
         all_country_frames.append(panel_df)
         log_lines.append(f"rows_{country_code}={len(panel_df)}")
