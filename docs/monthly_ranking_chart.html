@@ -6,15 +6,16 @@
   <title>Monthly AI Ranking Race</title>
   <style>
     :root {
-      --bg: #f3efe2;
-      --panel: rgba(255, 251, 242, 0.9);
-      --panel-strong: #fffaf0;
-      --ink: #132238;
-      --muted: #596777;
-      --line: rgba(19, 34, 56, 0.12);
-      --accent: #174b8a;
-      --accent-soft: rgba(23, 75, 138, 0.12);
-      --shadow: 0 24px 60px rgba(41, 51, 70, 0.14);
+      color-scheme: dark;
+      --bg: #05070d;
+      --panel: rgba(10, 14, 22, 0.86);
+      --panel-strong: #0c1220;
+      --ink: #eef4ff;
+      --muted: #95a5bf;
+      --line: rgba(158, 240, 255, 0.16);
+      --accent: #9ef0ff;
+      --accent-soft: rgba(158, 240, 255, 0.12);
+      --shadow: 0 28px 80px rgba(0, 0, 0, 0.42);
       --radius: 24px;
       --chart-height: 760px;
       --chart-top-pad: 52px;
@@ -34,9 +35,10 @@
       font-family: "Trebuchet MS", Verdana, sans-serif;
       color: var(--ink);
       background:
-        radial-gradient(circle at top left, rgba(214, 173, 96, 0.26), transparent 28%),
-        radial-gradient(circle at top right, rgba(23, 75, 138, 0.18), transparent 24%),
-        linear-gradient(160deg, #f5f1e4 0%, #f0f5fb 52%, #e8efe8 100%);
+        radial-gradient(circle at top left, rgba(158, 240, 255, 0.18), transparent 24%),
+        radial-gradient(circle at 84% 12%, rgba(89, 112, 255, 0.20), transparent 20%),
+        radial-gradient(circle at 40% 100%, rgba(255, 98, 130, 0.12), transparent 26%),
+        linear-gradient(180deg, #04060a 0%, #080b12 46%, #030409 100%);
       padding: 28px;
     }
 
@@ -53,7 +55,7 @@
     .notes {
       background: var(--panel);
       backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.5);
+      border: 1px solid rgba(158, 240, 255, 0.12);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
     }
@@ -69,7 +71,7 @@
       width: fit-content;
       padding: 7px 12px;
       border-radius: 999px;
-      background: rgba(19, 34, 56, 0.08);
+      background: rgba(158, 240, 255, 0.08);
       color: var(--accent);
       font-size: 12px;
       font-weight: 700;
@@ -103,8 +105,8 @@
     .stat-card {
       padding: 16px 18px;
       border-radius: 18px;
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.5));
-      border: 1px solid rgba(19, 34, 56, 0.08);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.025));
+      border: 1px solid rgba(158, 240, 255, 0.10);
       display: grid;
       gap: 6px;
     }
@@ -163,7 +165,7 @@
 
     select,
     button {
-      border: 1px solid rgba(19, 34, 56, 0.12);
+      border: 1px solid rgba(158, 240, 255, 0.18);
       border-radius: 14px;
       background: var(--panel-strong);
       color: var(--ink);
@@ -175,19 +177,13 @@
 
     button {
       cursor: pointer;
-      background: linear-gradient(135deg, #173b68, #1d5fa6);
-      color: #fff;
-      box-shadow: 0 12px 28px rgba(23, 75, 138, 0.24);
+      background: linear-gradient(135deg, #7de7ff, #5d86ff);
+      color: #041019;
+      box-shadow: 0 12px 28px rgba(93, 134, 255, 0.24);
     }
 
     button:hover {
       transform: translateY(-1px);
-    }
-
-    .button-secondary {
-      background: linear-gradient(135deg, #efe5c9, #f8f3e4);
-      color: var(--ink);
-      box-shadow: none;
     }
 
     .slider-wrap {
@@ -212,7 +208,7 @@
       height: 12px;
       border-radius: 999px;
       background:
-        linear-gradient(90deg, var(--accent) 0%, var(--accent) var(--progress, 0%), rgba(19, 34, 56, 0.12) var(--progress, 0%), rgba(19, 34, 56, 0.12) 100%);
+        linear-gradient(90deg, var(--accent) 0%, var(--accent) var(--progress, 0%), rgba(255, 255, 255, 0.08) var(--progress, 0%), rgba(255, 255, 255, 0.08) 100%);
       outline: none;
     }
 
@@ -221,30 +217,24 @@
       width: 24px;
       height: 24px;
       border-radius: 50%;
-      background: #ffffff;
+      background: #05070d;
       border: 3px solid var(--accent);
-      box-shadow: 0 8px 18px rgba(23, 75, 138, 0.26);
+      box-shadow: 0 0 0 3px rgba(158, 240, 255, 0.16), 0 8px 18px rgba(93, 134, 255, 0.26);
     }
 
     input[type="range"]::-moz-range-thumb {
       width: 24px;
       height: 24px;
       border-radius: 50%;
-      background: #ffffff;
+      background: #05070d;
       border: 3px solid var(--accent);
-      box-shadow: 0 8px 18px rgba(23, 75, 138, 0.26);
+      box-shadow: 0 0 0 3px rgba(158, 240, 255, 0.16), 0 8px 18px rgba(93, 134, 255, 0.26);
     }
 
     .chart-shell {
       padding: 22px;
       display: grid;
       gap: 16px;
-      transition: filter 280ms ease, transform 280ms ease;
-    }
-
-    .chart-shell.is-negative {
-      filter: invert(1) hue-rotate(180deg) saturate(0.92) contrast(1.04);
-      transform: translateZ(0);
     }
 
     .chart-top {
@@ -274,8 +264,8 @@
     .month-badge {
       padding: 10px 16px;
       border-radius: 999px;
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.54));
-      border: 1px solid rgba(19, 34, 56, 0.1);
+      background: linear-gradient(135deg, rgba(158, 240, 255, 0.10), rgba(93, 134, 255, 0.12));
+      border: 1px solid rgba(158, 240, 255, 0.16);
       font-size: 24px;
       font-weight: 900;
       font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
@@ -287,11 +277,11 @@
       height: var(--chart-height);
       border-radius: 22px;
       background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.68), rgba(255, 255, 255, 0.48)),
-        linear-gradient(90deg, rgba(19, 34, 56, 0.03) 0 1px, transparent 1px 100%);
+        linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.015)),
+        linear-gradient(90deg, rgba(158, 240, 255, 0.06) 0 1px, transparent 1px 100%);
       background-size: auto, 20% 100%;
       overflow: hidden;
-      border: 1px solid rgba(19, 34, 56, 0.08);
+      border: 1px solid rgba(158, 240, 255, 0.10);
       padding: 14px 0;
     }
 
@@ -300,22 +290,17 @@
       position: absolute;
       inset: 0;
       pointer-events: none;
-      opacity: 0;
-      transition: opacity 280ms ease;
+      opacity: 0.18;
       background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 18%, transparent 82%, rgba(255, 255, 255, 0.08)),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 18%, transparent 82%, rgba(255, 255, 255, 0.05)),
         repeating-linear-gradient(
           180deg,
-          rgba(255, 255, 255, 0.06) 0,
-          rgba(255, 255, 255, 0.06) 2px,
+          rgba(255, 255, 255, 0.04) 0,
+          rgba(255, 255, 255, 0.04) 2px,
           transparent 2px,
           transparent 8px
         );
       mix-blend-mode: screen;
-    }
-
-    .chart-shell.is-negative .chart::after {
-      opacity: 0.22;
     }
 
     .axis-notes {
@@ -349,7 +334,7 @@
     }
 
     .bar-backdrop {
-      background: rgba(19, 34, 56, 0.05);
+      background: rgba(255, 255, 255, 0.06);
       overflow: hidden;
     }
 
@@ -380,7 +365,8 @@
       display: grid;
       place-items: center;
       font-weight: 900;
-      background: rgba(19, 34, 56, 0.08);
+      background: rgba(158, 240, 255, 0.08);
+      border: 1px solid rgba(158, 240, 255, 0.10);
       color: var(--ink);
     }
 
@@ -433,8 +419,8 @@
       gap: 4px;
       border-radius: 999px;
       padding: 4px 8px;
-      background: rgba(255, 255, 255, 0.72);
-      border: 1px solid rgba(19, 34, 56, 0.08);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(158, 240, 255, 0.10);
     }
 
     .delta-up {
@@ -611,10 +597,6 @@
           <label for="play-button">Animation</label>
           <button id="play-button" type="button">Play timeline</button>
         </div>
-        <div class="field">
-          <label for="negative-button">Visual mode</label>
-          <button id="negative-button" class="button-secondary" type="button" aria-pressed="false">Negative film: Off</button>
-        </div>
       </div>
       <div class="slider-wrap">
         <div class="slider-header">
@@ -642,7 +624,7 @@
     </section>
 
     <section class="notes">
-      <div><strong>How to read it:</strong> bar length shows the selected AI proportion for each country in the selected month. Position shows rank. The small badge next to each country indicates movement relative to the previous month. Use <strong>Negative film</strong> to switch the chart into an inverted presentation mode.</div>
+      <div><strong>How to read it:</strong> bar length shows the selected AI proportion for each country in the selected month. Position shows rank. The small badge next to each country indicates movement relative to the previous month.</div>
       <div><strong>Local use:</strong> this file is self-contained except for the nearby `monthly_ranking_data.js` file, so it can be opened directly from disk without starting a web server.</div>
     </section>
   </main>
@@ -663,7 +645,6 @@
         playing: false,
         timer: null,
         speed: 700,
-        negative: false,
       };
 
       const countryColors = {
@@ -684,13 +665,11 @@
       const metricSelect = document.getElementById("metric-select");
       const speedSelect = document.getElementById("speed-select");
       const playButton = document.getElementById("play-button");
-      const negativeButton = document.getElementById("negative-button");
       const monthSlider = document.getElementById("month-slider");
       const monthReadout = document.getElementById("month-readout");
       const monthBadge = document.getElementById("month-badge");
       const chartSubtitle = document.getElementById("chart-subtitle");
       const chart = document.getElementById("chart");
-      const chartShell = document.querySelector(".chart-shell");
 
       const topCountry = document.getElementById("top-country");
       const topCountrySubtle = document.getElementById("top-country-subtle");
@@ -864,24 +843,18 @@
         monthSlider.style.setProperty("--progress", progress + "%");
       }
 
-      function updateNegativeMode() {
-        chartShell.classList.toggle("is-negative", state.negative);
-        negativeButton.textContent = state.negative ? "Negative film: On" : "Negative film: Off";
-        negativeButton.setAttribute("aria-pressed", state.negative ? "true" : "false");
-      }
-
       function deltaMarkup(currentRank, previousRank) {
         if (previousRank == null) {
           return { text: "new", className: "delta delta-flat" };
         }
         const diff = previousRank - currentRank;
         if (diff > 0) {
-          return { text: "▲ " + diff, className: "delta delta-up" };
+          return { text: "^ " + diff, className: "delta delta-up" };
         }
         if (diff < 0) {
-          return { text: "▼ " + Math.abs(diff), className: "delta delta-down" };
+          return { text: "v " + Math.abs(diff), className: "delta delta-down" };
         }
-        return { text: "• same", className: "delta delta-flat" };
+        return { text: "= same", className: "delta delta-flat" };
       }
 
       function render() {
@@ -906,7 +879,7 @@
         const monthText = monthLabel(currentMonth.month);
         monthReadout.textContent = monthText;
         monthBadge.textContent = monthText;
-        chartSubtitle.textContent = raw.datasetLabels[state.datasetKey] + " • " + raw.metrics[state.metricKey];
+        chartSubtitle.textContent = raw.datasetLabels[state.datasetKey] + " | " + raw.metrics[state.metricKey];
 
         rows.forEach((row, index) => {
           const elements = rowsByCountry.get(row.country);
@@ -927,7 +900,7 @@
             : row.ai_articles_balanced;
           const aiLabel = state.metricKey === "ai_proportion_strict" ? "AI strict" : "AI bal";
           elements.articleMeta.textContent =
-            formatterInt.format(aiArticleCount) + " " + aiLabel + " • " +
+            formatterInt.format(aiArticleCount) + " " + aiLabel + " | " +
             formatterInt.format(row.all_articles) + " all";
           elements.value.textContent = formatterPctTight.format(value);
           elements.row.setAttribute(
@@ -946,9 +919,9 @@
         const top = rows[0];
         const bottom = rows[rows.length - 1];
         topCountry.textContent = top.country;
-        topCountrySubtle.textContent = `${top.country_name} • ${formatterPct.format(top[state.metricKey])}`;
+        topCountrySubtle.textContent = `${top.country_name} | ${formatterPct.format(top[state.metricKey])}`;
         bottomCountry.textContent = bottom.country;
-        bottomCountrySubtle.textContent = `${bottom.country_name} • ${formatterPct.format(bottom[state.metricKey])}`;
+        bottomCountrySubtle.textContent = `${bottom.country_name} | ${formatterPct.format(bottom[state.metricKey])}`;
         currentSpread.textContent = formatterPctTight.format(top[state.metricKey] - bottom[state.metricKey]);
       }
 
@@ -1010,11 +983,6 @@
         }
       });
 
-      negativeButton.addEventListener("click", () => {
-        state.negative = !state.negative;
-        updateNegativeMode();
-      });
-
       monthSlider.addEventListener("input", () => {
         state.monthIndex = Number(monthSlider.value);
         render();
@@ -1032,7 +1000,6 @@
 
       buildControls();
       ensureRows();
-      updateNegativeMode();
       render();
     })();
   </script>
