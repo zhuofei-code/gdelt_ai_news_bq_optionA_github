@@ -80,10 +80,11 @@
     h1 {
       margin: 0;
       font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
-      font-size: clamp(32px, 4vw, 54px);
+      font-size: clamp(28px, 3.2vw, 46px);
       line-height: 0.98;
       letter-spacing: -0.03em;
-      max-width: 12ch;
+      max-width: none;
+      white-space: nowrap;
     }
 
     .hero-copy {
@@ -318,8 +319,11 @@
     }
 
     .bar-fill {
+      top: 0;
+      left: 0;
       right: auto;
       width: 0;
+      height: 100%;
       background: var(--bar-color, #174b8a);
       box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28);
       transition: width 680ms cubic-bezier(0.22, 1, 0.36, 1);
@@ -463,6 +467,10 @@
       .hero-grid,
       .control-grid {
         grid-template-columns: 1fr;
+      }
+
+      h1 {
+        white-space: normal;
       }
 
       :root {
@@ -707,6 +715,7 @@
         const fill = document.createElement("div");
         fill.className = "bar-fill";
         fill.style.setProperty("--bar-color", countryColors[countryCode] || "#174b8a");
+        backdrop.appendChild(fill);
 
         const content = document.createElement("div");
         content.className = "row-content";
@@ -752,7 +761,6 @@
         content.appendChild(value);
 
         row.appendChild(backdrop);
-        row.appendChild(fill);
         row.appendChild(content);
         chart.appendChild(row);
 
@@ -840,10 +848,12 @@
         const rowGap = parseFloat(rootStyles.getPropertyValue("--row-gap")) || 10;
         const rowTopPad = parseFloat(rootStyles.getPropertyValue("--chart-top-pad")) || 52;
         const rowStep = rowHeight + rowGap;
+        const chartBottomPad = 28;
 
         monthSlider.max = String(datasetMonths.length - 1);
         monthSlider.value = String(state.monthIndex);
         updateSliderVisual();
+        chart.style.height = `${rowTopPad + rows.length * rowStep + chartBottomPad}px`;
 
         const monthText = monthLabel(currentMonth.month);
         monthReadout.textContent = monthText;
@@ -853,7 +863,7 @@
         rows.forEach((row, index) => {
           const elements = rowsByCountry.get(row.country);
           const value = row[state.metricKey];
-          const widthPct = Math.max(1.2, (value / maxValue) * 100);
+          const widthPct = Math.min(100, Math.max(1.2, (value / maxValue) * 100));
           const delta = deltaMarkup(index, previousRankMap.get(row.country));
 
           elements.row.style.transform = `translateY(${rowTopPad + index * rowStep}px)`;
