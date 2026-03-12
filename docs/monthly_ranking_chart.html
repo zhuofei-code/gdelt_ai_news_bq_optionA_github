@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Monthly AI Ranking Race</title>
+  <style>
+    :root {
+      --bg: #f3efe2;
+      --panel: rgba(255, 251, 242, 0.9);
+      --panel-strong: #fffaf0;
+      --ink: #132238;
+      --muted: #596777;
+      --line: rgba(19, 34, 56, 0.12);
+      --accent: #174b8a;
+      --accent-soft: rgba(23, 75, 138, 0.12);
+      --shadow: 0 24px 60px rgba(41, 51, 70, 0.14);
+      --radius: 24px;
+      --chart-height: 748px;
+      --bar-left: 192px;
+      --bar-right: 112px;
+      --row-height: 56px;
+      --row-gap: 10px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Trebuchet MS", Verdana, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(214, 173, 96, 0.26), transparent 28%),
+        radial-gradient(circle at top right, rgba(23, 75, 138, 0.18), transparent 24%),
+        linear-gradient(160deg, #f5f1e4 0%, #f0f5fb 52%, #e8efe8 100%);
+      padding: 28px;
+    }
+
+    .page {
+      max-width: 1320px;
+      margin: 0 auto;
+      display: grid;
+      gap: 20px;
+    }
+
+    .hero,
+    .controls,
+    .chart-shell,
+    .notes {
+      background: var(--panel);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 26px 28px 22px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      width: fit-content;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: rgba(19, 34, 56, 0.08);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+      font-size: clamp(32px, 4vw, 54px);
+      line-height: 0.98;
+      letter-spacing: -0.03em;
+      max-width: 12ch;
+    }
+
+    .hero-copy {
+      max-width: 78ch;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 15px;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .stat-card {
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.5));
+      border: 1px solid rgba(19, 34, 56, 0.08);
+      display: grid;
+      gap: 6px;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .stat-value {
+      font-size: 26px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .stat-subtle {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .controls {
+      padding: 22px 24px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .control-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      align-items: end;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .field label,
+    .slider-header {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    select,
+    button,
+    input[type="range"] {
+      width: 100%;
+    }
+
+    select,
+    button {
+      border: 1px solid rgba(19, 34, 56, 0.12);
+      border-radius: 14px;
+      background: var(--panel-strong);
+      color: var(--ink);
+      height: 48px;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 0 14px;
+    }
+
+    button {
+      cursor: pointer;
+      background: linear-gradient(135deg, #173b68, #1d5fa6);
+      color: #fff;
+      box-shadow: 0 12px 28px rgba(23, 75, 138, 0.24);
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    .slider-wrap {
+      display: grid;
+      gap: 8px;
+    }
+
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .month-readout {
+      color: var(--accent);
+      font-weight: 800;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 12px;
+      border-radius: 999px;
+      background:
+        linear-gradient(90deg, var(--accent) 0%, var(--accent) var(--progress, 0%), rgba(19, 34, 56, 0.12) var(--progress, 0%), rgba(19, 34, 56, 0.12) 100%);
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 3px solid var(--accent);
+      box-shadow: 0 8px 18px rgba(23, 75, 138, 0.26);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 3px solid var(--accent);
+      box-shadow: 0 8px 18px rgba(23, 75, 138, 0.26);
+    }
+
+    .chart-shell {
+      padding: 22px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .chart-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .chart-title-block {
+      display: grid;
+      gap: 5px;
+    }
+
+    .chart-title {
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+    }
+
+    .chart-subtitle {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .month-badge {
+      padding: 10px 16px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.54));
+      border: 1px solid rgba(19, 34, 56, 0.1);
+      font-size: 24px;
+      font-weight: 900;
+      font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+      letter-spacing: -0.03em;
+    }
+
+    .chart {
+      position: relative;
+      height: var(--chart-height);
+      border-radius: 22px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.68), rgba(255, 255, 255, 0.48)),
+        linear-gradient(90deg, rgba(19, 34, 56, 0.03) 0 1px, transparent 1px 100%);
+      background-size: auto, 20% 100%;
+      overflow: hidden;
+      border: 1px solid rgba(19, 34, 56, 0.08);
+      padding: 14px 0;
+    }
+
+    .axis-notes {
+      position: absolute;
+      inset: 16px 24px auto var(--bar-left);
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 12px;
+      pointer-events: none;
+    }
+
+    .bar-row {
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      height: var(--row-height);
+      transition:
+        transform 680ms cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 420ms ease;
+    }
+
+    .bar-backdrop,
+    .bar-fill {
+      position: absolute;
+      top: 11px;
+      left: var(--bar-left);
+      right: var(--bar-right);
+      height: 34px;
+      border-radius: 999px;
+    }
+
+    .bar-backdrop {
+      background: rgba(19, 34, 56, 0.05);
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      right: auto;
+      width: 0;
+      background: var(--bar-color, #174b8a);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28);
+      transition: width 680ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .row-content {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      grid-template-columns: 54px minmax(120px, 1fr) minmax(0, 1.3fr) 108px;
+      align-items: center;
+      gap: 10px;
+      padding: 0 8px 0 0;
+      z-index: 2;
+    }
+
+    .rank-pill {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      background: rgba(19, 34, 56, 0.08);
+      color: var(--ink);
+      margin-left: 6px;
+    }
+
+    .country-stack {
+      display: grid;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .country-head {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .country-code {
+      font-weight: 900;
+      letter-spacing: 0.02em;
+    }
+
+    .country-name {
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 13px;
+    }
+
+    .row-meta {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 12px;
+      margin-left: 10px;
+      flex-wrap: wrap;
+    }
+
+    .delta {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      border-radius: 999px;
+      padding: 4px 8px;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(19, 34, 56, 0.08);
+    }
+
+    .delta-up {
+      color: #12653a;
+    }
+
+    .delta-down {
+      color: #8d2a1f;
+    }
+
+    .delta-flat {
+      color: var(--muted);
+    }
+
+    .row-value {
+      font-size: 15px;
+      font-weight: 900;
+      text-align: right;
+      letter-spacing: -0.02em;
+    }
+
+    .notes {
+      padding: 20px 22px;
+      display: grid;
+      gap: 8px;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 14px;
+    }
+
+    .notes strong {
+      color: var(--ink);
+    }
+
+    @media (max-width: 980px) {
+      body {
+        padding: 16px;
+      }
+
+      .hero-grid,
+      .control-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      :root {
+        --chart-height: 800px;
+        --bar-left: 156px;
+        --bar-right: 90px;
+      }
+
+      .row-content {
+        grid-template-columns: 48px minmax(110px, 1fr) minmax(0, 1.2fr) 90px;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .hero-grid,
+      .control-grid {
+        grid-template-columns: 1fr;
+      }
+
+      :root {
+        --chart-height: 920px;
+        --bar-left: 18px;
+        --bar-right: 16px;
+        --row-height: 72px;
+      }
+
+      .row-content {
+        grid-template-columns: 44px 1fr 90px;
+        grid-template-areas:
+          "rank country value"
+          "rank meta value";
+        gap: 2px 10px;
+        padding-left: 6px;
+      }
+
+      .rank-pill {
+        grid-area: rank;
+        margin-left: 0;
+        width: 38px;
+        height: 38px;
+      }
+
+      .country-stack {
+        grid-area: country;
+      }
+
+      .row-meta {
+        grid-area: meta;
+        margin-left: 0;
+      }
+
+      .row-value {
+        grid-area: value;
+        align-self: center;
+      }
+
+      .bar-backdrop,
+      .bar-fill {
+        top: 30px;
+        height: 28px;
+      }
+
+      .axis-notes {
+        left: 20px;
+        right: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <span class="eyebrow">Interactive Ranking Race</span>
+      <h1>Monthly country rankings for AI news salience</h1>
+      <div class="hero-copy">
+        This page animates the month-by-month ranking of countries by AI news proportion.
+        You can switch between the mixed-source <strong>Option A</strong> design and the
+        <strong>mainstream-only</strong> design, and you can toggle between the balanced and
+        strict AI proportion definitions.
+      </div>
+      <div class="hero-grid">
+        <div class="stat-card">
+          <div class="stat-label">Top Country</div>
+          <div class="stat-value" id="top-country">-</div>
+          <div class="stat-subtle" id="top-country-subtle">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Bottom Country</div>
+          <div class="stat-value" id="bottom-country">-</div>
+          <div class="stat-subtle" id="bottom-country-subtle">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Current Spread</div>
+          <div class="stat-value" id="current-spread">-</div>
+          <div class="stat-subtle">Top minus bottom in the selected month</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Months Covered</div>
+          <div class="stat-value" id="month-count">-</div>
+          <div class="stat-subtle">June 2018 through May 2025</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="controls">
+      <div class="control-grid">
+        <div class="field">
+          <label for="dataset-select">Dataset</label>
+          <select id="dataset-select"></select>
+        </div>
+        <div class="field">
+          <label for="metric-select">Metric</label>
+          <select id="metric-select"></select>
+        </div>
+        <div class="field">
+          <label for="speed-select">Playback speed</label>
+          <select id="speed-select">
+            <option value="1100">Slow</option>
+            <option value="700" selected>Normal</option>
+            <option value="380">Fast</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="play-button">Animation</label>
+          <button id="play-button" type="button">Play timeline</button>
+        </div>
+      </div>
+      <div class="slider-wrap">
+        <div class="slider-header">
+          <span>Month</span>
+          <span class="month-readout" id="month-readout">-</span>
+        </div>
+        <input id="month-slider" type="range" min="0" max="0" value="0" step="1">
+      </div>
+    </section>
+
+    <section class="chart-shell">
+      <div class="chart-top">
+        <div class="chart-title-block">
+          <div class="chart-title">Country ranking by monthly AI proportion</div>
+          <div class="chart-subtitle" id="chart-subtitle">-</div>
+        </div>
+        <div class="month-badge" id="month-badge">-</div>
+      </div>
+      <div class="chart" id="chart">
+        <div class="axis-notes">
+          <span>Lower AI proportion</span>
+          <span>Higher AI proportion</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="notes">
+      <div><strong>How to read it:</strong> bar length shows the selected AI proportion for each country in the selected month. Position shows rank. The small badge next to each country indicates movement relative to the previous month.</div>
+      <div><strong>Local use:</strong> this file is self-contained except for the nearby `monthly_ranking_data.js` file, so it can be opened directly from disk without starting a web server.</div>
+    </section>
+  </main>
+
+  <script src="./monthly_ranking_data.js"></script>
+  <script>
+    (() => {
+      const raw = window.MONTHLY_RANKING_DATA;
+      if (!raw) {
+        document.body.innerHTML = "<p>Missing monthly_ranking_data.js</p>";
+        return;
+      }
+
+      const state = {
+        datasetKey: "mainstream5",
+        metricKey: "ai_proportion_balanced",
+        monthIndex: 0,
+        playing: false,
+        timer: null,
+        speed: 700,
+      };
+
+      const countryColors = {
+        PL: "#6d2e46",
+        PT: "#0f766e",
+        UK: "#3f51b5",
+        FR: "#d97706",
+        AT: "#b42318",
+        CZ: "#3f7d20",
+        BE: "#0f5d92",
+        HU: "#8b5cf6",
+        SI: "#197278",
+        FI: "#5f4b8b",
+        IS: "#546a7b",
+      };
+
+      const datasetSelect = document.getElementById("dataset-select");
+      const metricSelect = document.getElementById("metric-select");
+      const speedSelect = document.getElementById("speed-select");
+      const playButton = document.getElementById("play-button");
+      const monthSlider = document.getElementById("month-slider");
+      const monthReadout = document.getElementById("month-readout");
+      const monthBadge = document.getElementById("month-badge");
+      const chartSubtitle = document.getElementById("chart-subtitle");
+      const chart = document.getElementById("chart");
+
+      const topCountry = document.getElementById("top-country");
+      const topCountrySubtle = document.getElementById("top-country-subtle");
+      const bottomCountry = document.getElementById("bottom-country");
+      const bottomCountrySubtle = document.getElementById("bottom-country-subtle");
+      const currentSpread = document.getElementById("current-spread");
+      const monthCount = document.getElementById("month-count");
+
+      const rowsByCountry = new Map();
+      const monthCountValue = raw.months.length;
+      monthCount.textContent = String(monthCountValue);
+
+      const formatterPct = new Intl.NumberFormat("en-GB", {
+        style: "percent",
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+
+      const formatterPctTight = new Intl.NumberFormat("en-GB", {
+        style: "percent",
+        minimumFractionDigits: 3,
+        maximumFractionDigits: 3,
+      });
+
+      const formatterInt = new Intl.NumberFormat("en-GB");
+
+      function buildControls() {
+        Object.entries(raw.datasetLabels).forEach(([key, label]) => {
+          const option = document.createElement("option");
+          option.value = key;
+          option.textContent = label;
+          datasetSelect.appendChild(option);
+        });
+        datasetSelect.value = state.datasetKey;
+
+        Object.entries(raw.metrics).forEach(([key, label]) => {
+          const option = document.createElement("option");
+          option.value = key;
+          option.textContent = label;
+          metricSelect.appendChild(option);
+        });
+        metricSelect.value = state.metricKey;
+      }
+
+      function getDatasetMonths() {
+        return raw.datasets[state.datasetKey];
+      }
+
+      function getSortedMonthRows(monthIndex) {
+        const monthRows = getDatasetMonths()[monthIndex].rows.slice();
+        return monthRows.sort((a, b) => {
+          const diff = b[state.metricKey] - a[state.metricKey];
+          return diff !== 0 ? diff : a.country.localeCompare(b.country);
+        });
+      }
+
+      function buildRow(countryCode) {
+        const row = document.createElement("div");
+        row.className = "bar-row";
+
+        const backdrop = document.createElement("div");
+        backdrop.className = "bar-backdrop";
+
+        const fill = document.createElement("div");
+        fill.className = "bar-fill";
+        fill.style.setProperty("--bar-color", countryColors[countryCode] || "#174b8a");
+
+        const content = document.createElement("div");
+        content.className = "row-content";
+
+        const rank = document.createElement("div");
+        rank.className = "rank-pill";
+
+        const countryStack = document.createElement("div");
+        countryStack.className = "country-stack";
+
+        const head = document.createElement("div");
+        head.className = "country-head";
+
+        const code = document.createElement("span");
+        code.className = "country-code";
+
+        const name = document.createElement("span");
+        name.className = "country-name";
+
+        head.appendChild(code);
+        head.appendChild(name);
+
+        const meta = document.createElement("div");
+        meta.className = "row-meta";
+
+        const delta = document.createElement("span");
+        delta.className = "delta";
+
+        const articleMeta = document.createElement("span");
+
+        meta.appendChild(delta);
+        meta.appendChild(articleMeta);
+        countryStack.appendChild(head);
+        countryStack.appendChild(meta);
+
+        const value = document.createElement("div");
+        value.className = "row-value";
+
+        content.appendChild(rank);
+        content.appendChild(countryStack);
+        content.appendChild(document.createElement("div"));
+        content.appendChild(value);
+
+        row.appendChild(backdrop);
+        row.appendChild(fill);
+        row.appendChild(content);
+        chart.appendChild(row);
+
+        rowsByCountry.set(countryCode, {
+          row,
+          fill,
+          rank,
+          code,
+          name,
+          delta,
+          articleMeta,
+          value,
+        });
+      }
+
+      function ensureRows() {
+        const countries = new Set();
+        Object.values(raw.datasets).forEach(datasetMonths => {
+          datasetMonths.forEach(month => {
+            month.rows.forEach(row => countries.add(row.country));
+          });
+        });
+        Array.from(countries).sort().forEach(buildRow);
+      }
+
+      function getGlobalMax(metricKey, datasetKey) {
+        let max = 0;
+        raw.datasets[datasetKey].forEach(month => {
+          month.rows.forEach(row => {
+            if (row[metricKey] > max) {
+              max = row[metricKey];
+            }
+          });
+        });
+        return max;
+      }
+
+      const globalMaxCache = {};
+      function globalMax(metricKey, datasetKey) {
+        const cacheKey = datasetKey + "::" + metricKey;
+        if (!(cacheKey in globalMaxCache)) {
+          globalMaxCache[cacheKey] = getGlobalMax(metricKey, datasetKey);
+        }
+        return globalMaxCache[cacheKey];
+      }
+
+      function monthLabel(value) {
+        const [year, month] = value.split("-").map(Number);
+        return new Date(Date.UTC(year, month - 1, 1)).toLocaleDateString("en-GB", {
+          month: "short",
+          year: "numeric",
+          timeZone: "UTC",
+        });
+      }
+
+      function updateSliderVisual() {
+        const max = Number(monthSlider.max) || 1;
+        const progress = (Number(monthSlider.value) / max) * 100;
+        monthSlider.style.setProperty("--progress", progress + "%");
+      }
+
+      function deltaMarkup(currentRank, previousRank) {
+        if (previousRank == null) {
+          return { text: "new", className: "delta delta-flat" };
+        }
+        const diff = previousRank - currentRank;
+        if (diff > 0) {
+          return { text: "▲ " + diff, className: "delta delta-up" };
+        }
+        if (diff < 0) {
+          return { text: "▼ " + Math.abs(diff), className: "delta delta-down" };
+        }
+        return { text: "• same", className: "delta delta-flat" };
+      }
+
+      function render() {
+        const datasetMonths = getDatasetMonths();
+        const currentMonth = datasetMonths[state.monthIndex];
+        const rows = getSortedMonthRows(state.monthIndex);
+        const previousRows = state.monthIndex > 0 ? getSortedMonthRows(state.monthIndex - 1) : [];
+        const previousRankMap = new Map(previousRows.map((row, index) => [row.country, index]));
+        const maxValue = globalMax(state.metricKey, state.datasetKey);
+        const rootStyles = getComputedStyle(document.documentElement);
+        const rowHeight = parseFloat(rootStyles.getPropertyValue("--row-height")) || 56;
+        const rowGap = parseFloat(rootStyles.getPropertyValue("--row-gap")) || 10;
+        const rowStep = rowHeight + rowGap;
+
+        monthSlider.max = String(datasetMonths.length - 1);
+        monthSlider.value = String(state.monthIndex);
+        updateSliderVisual();
+
+        const monthText = monthLabel(currentMonth.month);
+        monthReadout.textContent = monthText;
+        monthBadge.textContent = monthText;
+        chartSubtitle.textContent = raw.datasetLabels[state.datasetKey] + " • " + raw.metrics[state.metricKey];
+
+        rows.forEach((row, index) => {
+          const elements = rowsByCountry.get(row.country);
+          const value = row[state.metricKey];
+          const widthPct = Math.max(1.2, (value / maxValue) * 100);
+          const delta = deltaMarkup(index, previousRankMap.get(row.country));
+
+          elements.row.style.transform = `translateY(${20 + index * rowStep}px)`;
+          elements.row.style.opacity = "1";
+          elements.fill.style.width = `${widthPct}%`;
+          elements.rank.textContent = "#" + (index + 1);
+          elements.code.textContent = row.country;
+          elements.name.textContent = row.country_name;
+          elements.delta.textContent = delta.text;
+          elements.delta.className = delta.className;
+          const aiArticleCount = state.metricKey === "ai_proportion_strict"
+            ? row.ai_articles_strict
+            : row.ai_articles_balanced;
+          const aiLabel = state.metricKey === "ai_proportion_strict" ? "AI strict" : "AI bal";
+          elements.articleMeta.textContent =
+            formatterInt.format(aiArticleCount) + " " + aiLabel + " • " +
+            formatterInt.format(row.all_articles) + " all";
+          elements.value.textContent = formatterPctTight.format(value);
+          elements.row.setAttribute(
+            "aria-label",
+            `${row.country_name}, rank ${index + 1}, value ${formatterPctTight.format(value)}`
+          );
+        });
+
+        const activeCountries = new Set(rows.map(row => row.country));
+        rowsByCountry.forEach((elements, countryCode) => {
+          if (!activeCountries.has(countryCode)) {
+            elements.row.style.opacity = "0";
+          }
+        });
+
+        const top = rows[0];
+        const bottom = rows[rows.length - 1];
+        topCountry.textContent = top.country;
+        topCountrySubtle.textContent = `${top.country_name} • ${formatterPct.format(top[state.metricKey])}`;
+        bottomCountry.textContent = bottom.country;
+        bottomCountrySubtle.textContent = `${bottom.country_name} • ${formatterPct.format(bottom[state.metricKey])}`;
+        currentSpread.textContent = formatterPctTight.format(top[state.metricKey] - bottom[state.metricKey]);
+      }
+
+      function stopPlayback() {
+        state.playing = false;
+        playButton.textContent = "Play timeline";
+        if (state.timer) {
+          window.clearTimeout(state.timer);
+          state.timer = null;
+        }
+      }
+
+      function scheduleNextFrame() {
+        if (!state.playing) {
+          return;
+        }
+        state.timer = window.setTimeout(() => {
+          const maxIndex = getDatasetMonths().length - 1;
+          if (state.monthIndex >= maxIndex) {
+            state.monthIndex = 0;
+          } else {
+            state.monthIndex += 1;
+          }
+          render();
+          scheduleNextFrame();
+        }, state.speed);
+      }
+
+      function startPlayback() {
+        stopPlayback();
+        state.playing = true;
+        playButton.textContent = "Pause timeline";
+        scheduleNextFrame();
+      }
+
+      datasetSelect.addEventListener("change", () => {
+        state.datasetKey = datasetSelect.value;
+        state.monthIndex = Math.min(state.monthIndex, getDatasetMonths().length - 1);
+        render();
+      });
+
+      metricSelect.addEventListener("change", () => {
+        state.metricKey = metricSelect.value;
+        render();
+      });
+
+      speedSelect.addEventListener("change", () => {
+        state.speed = Number(speedSelect.value);
+        if (state.playing) {
+          startPlayback();
+        }
+      });
+
+      playButton.addEventListener("click", () => {
+        if (state.playing) {
+          stopPlayback();
+        } else {
+          startPlayback();
+        }
+      });
+
+      monthSlider.addEventListener("input", () => {
+        state.monthIndex = Number(monthSlider.value);
+        render();
+      });
+
+      window.addEventListener("resize", () => {
+        render();
+      });
+
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+          stopPlayback();
+        }
+      });
+
+      buildControls();
+      ensureRows();
+      render();
+    })();
+  </script>
+</body>
+</html>
