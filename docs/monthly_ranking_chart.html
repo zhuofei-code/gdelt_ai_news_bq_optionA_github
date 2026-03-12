@@ -136,7 +136,7 @@
 
     .control-grid {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
       gap: 14px;
       align-items: end;
     }
@@ -182,6 +182,12 @@
 
     button:hover {
       transform: translateY(-1px);
+    }
+
+    .button-secondary {
+      background: linear-gradient(135deg, #efe5c9, #f8f3e4);
+      color: var(--ink);
+      box-shadow: none;
     }
 
     .slider-wrap {
@@ -233,6 +239,12 @@
       padding: 22px;
       display: grid;
       gap: 16px;
+      transition: filter 280ms ease, transform 280ms ease;
+    }
+
+    .chart-shell.is-negative {
+      filter: invert(1) hue-rotate(180deg) saturate(0.92) contrast(1.04);
+      transform: translateZ(0);
     }
 
     .chart-top {
@@ -281,6 +293,29 @@
       overflow: hidden;
       border: 1px solid rgba(19, 34, 56, 0.08);
       padding: 14px 0;
+    }
+
+    .chart::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 280ms ease;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 18%, transparent 82%, rgba(255, 255, 255, 0.08)),
+        repeating-linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.06) 0,
+          rgba(255, 255, 255, 0.06) 2px,
+          transparent 2px,
+          transparent 8px
+        );
+      mix-blend-mode: screen;
+    }
+
+    .chart-shell.is-negative .chart::after {
+      opacity: 0.22;
     }
 
     .axis-notes {
@@ -549,7 +584,7 @@
         <div class="stat-card">
           <div class="stat-label">Months Covered</div>
           <div class="stat-value" id="month-count">-</div>
-          <div class="stat-subtle">June 2018 through May 2025</div>
+          <div class="stat-subtle">June 2018 through March 2026</div>
         </div>
       </div>
     </section>
@@ -575,6 +610,10 @@
         <div class="field">
           <label for="play-button">Animation</label>
           <button id="play-button" type="button">Play timeline</button>
+        </div>
+        <div class="field">
+          <label for="negative-button">Visual mode</label>
+          <button id="negative-button" class="button-secondary" type="button" aria-pressed="false">Negative film: Off</button>
         </div>
       </div>
       <div class="slider-wrap">
@@ -603,7 +642,7 @@
     </section>
 
     <section class="notes">
-      <div><strong>How to read it:</strong> bar length shows the selected AI proportion for each country in the selected month. Position shows rank. The small badge next to each country indicates movement relative to the previous month.</div>
+      <div><strong>How to read it:</strong> bar length shows the selected AI proportion for each country in the selected month. Position shows rank. The small badge next to each country indicates movement relative to the previous month. Use <strong>Negative film</strong> to switch the chart into an inverted presentation mode.</div>
       <div><strong>Local use:</strong> this file is self-contained except for the nearby `monthly_ranking_data.js` file, so it can be opened directly from disk without starting a web server.</div>
     </section>
   </main>
@@ -624,6 +663,7 @@
         playing: false,
         timer: null,
         speed: 700,
+        negative: false,
       };
 
       const countryColors = {
@@ -644,11 +684,13 @@
       const metricSelect = document.getElementById("metric-select");
       const speedSelect = document.getElementById("speed-select");
       const playButton = document.getElementById("play-button");
+      const negativeButton = document.getElementById("negative-button");
       const monthSlider = document.getElementById("month-slider");
       const monthReadout = document.getElementById("month-readout");
       const monthBadge = document.getElementById("month-badge");
       const chartSubtitle = document.getElementById("chart-subtitle");
       const chart = document.getElementById("chart");
+      const chartShell = document.querySelector(".chart-shell");
 
       const topCountry = document.getElementById("top-country");
       const topCountrySubtle = document.getElementById("top-country-subtle");
@@ -822,6 +864,12 @@
         monthSlider.style.setProperty("--progress", progress + "%");
       }
 
+      function updateNegativeMode() {
+        chartShell.classList.toggle("is-negative", state.negative);
+        negativeButton.textContent = state.negative ? "Negative film: On" : "Negative film: Off";
+        negativeButton.setAttribute("aria-pressed", state.negative ? "true" : "false");
+      }
+
       function deltaMarkup(currentRank, previousRank) {
         if (previousRank == null) {
           return { text: "new", className: "delta delta-flat" };
@@ -962,6 +1010,11 @@
         }
       });
 
+      negativeButton.addEventListener("click", () => {
+        state.negative = !state.negative;
+        updateNegativeMode();
+      });
+
       monthSlider.addEventListener("input", () => {
         state.monthIndex = Number(monthSlider.value);
         render();
@@ -979,6 +1032,7 @@
 
       buildControls();
       ensureRows();
+      updateNegativeMode();
       render();
     })();
   </script>
