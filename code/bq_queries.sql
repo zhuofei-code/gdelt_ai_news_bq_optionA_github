@@ -3,10 +3,9 @@
 -- Parameters:
 --   @start_date       DATE
 --   @end_date         DATE (exclusive)
---   @strict_regex     STRING
---   @context_regex    STRING
---   @ai_abbrev_regex  STRING
 --   @country_domain_map ARRAY<STRING> with format "CC|domain"
+--   @country_rule_map ARRAY<STRING> with JSON payload:
+--     {"country":"CC","strict_regex":"...","context_regex":"...","ai_abbrev_regex":"..."}
 
 WITH domain_country_map AS (
   SELECT
@@ -14,6 +13,14 @@ WITH domain_country_map AS (
     SPLIT(map_value, '|')[SAFE_OFFSET(1)] AS domain
   FROM UNNEST(@country_domain_map) AS map_value
   WHERE ARRAY_LENGTH(SPLIT(map_value, '|')) = 2
+),
+country_rule_map AS (
+  SELECT
+    JSON_VALUE(rule_json, '$.country') AS country,
+    JSON_VALUE(rule_json, '$.strict_regex') AS strict_regex,
+    JSON_VALUE(rule_json, '$.context_regex') AS context_regex,
+    JSON_VALUE(rule_json, '$.ai_abbrev_regex') AS ai_abbrev_regex
+  FROM UNNEST(@country_rule_map) AS rule_json
 ),
 base AS (
   SELECT
@@ -47,10 +54,15 @@ domain_filtered AS (
     m.country,
     b.article_id,
     b.tone,
-    b.ai_text
+    b.ai_text,
+    r.strict_regex,
+    r.context_regex,
+    r.ai_abbrev_regex
   FROM base AS b
   JOIN domain_country_map AS m
     ON b.host = m.domain OR ENDS_WITH(b.host, CONCAT('.', m.domain))
+  JOIN country_rule_map AS r
+    ON m.country = r.country
 ),
 doc_month AS (
   SELECT
@@ -58,9 +70,9 @@ doc_month AS (
     month_date,
     article_id,
     AVG(tone) AS doc_tone,
-    LOGICAL_OR(REGEXP_CONTAINS(ai_text, @strict_regex)) AS strict_match,
-    LOGICAL_OR(REGEXP_CONTAINS(ai_text, @ai_abbrev_regex)) AS abbrev_match,
-    LOGICAL_OR(REGEXP_CONTAINS(ai_text, @context_regex)) AS context_match
+    LOGICAL_OR(REGEXP_CONTAINS(ai_text, strict_regex)) AS strict_match,
+    LOGICAL_OR(REGEXP_CONTAINS(ai_text, ai_abbrev_regex)) AS abbrev_match,
+    LOGICAL_OR(REGEXP_CONTAINS(ai_text, context_regex)) AS context_match
   FROM domain_filtered
   GROUP BY country, month_date, article_id
 ),

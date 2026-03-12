@@ -1,0 +1,115 @@
+metadata:
+  version: keyword_strategy_v2_seed
+  strict_base_files:
+    - keywords_strict.txt
+    - keywords_strict_v2_additions.txt
+  context_files:
+    en: keywords_context.txt
+    fr: keywords_context_fr_v2.txt
+    de: keywords_context_de_v2.txt
+    pt: keywords_context_pt_v2.txt
+    nl: keywords_context_nl_v2.txt
+    is: keywords_context_is_v2.txt
+    fi: keywords_context_fi_v2.txt
+    cs: keywords_context_cs_v2.txt
+    pl: keywords_context_pl_v2.txt
+    hu: keywords_context_hu_v2.txt
+    sl: keywords_context_sl_v2.txt
+  default_context_languages:
+    - en
+  default_abbreviation_terms:
+    - ai
+    - a.i.
+countries:
+  IS:
+    languages:
+      - is
+      - en
+    context_languages:
+      - is
+      - en
+  FI:
+    languages:
+      - fi
+      - en
+    context_languages:
+      - fi
+      - en
+  BE:
+    languages:
+      - fr
+      - nl
+      - en
+    context_languages:
+      - fr
+      - nl
+      - en
+  FR:
+    languages:
+      - fr
+      - en
+    context_languages:
+      - fr
+      - en
+    abbreviation_terms:
+      - ai
+      - a.i.
+      - ia
+      - i.a.
+  PT:
+    languages:
+      - pt
+      - en
+    context_languages:
+      - pt
+      - en
+    abbreviation_terms:
+      - ai
+      - a.i.
+      - ia
+      - i.a.
+  AT:
+    languages:
+      - de
+      - en
+    context_languages:
+      - de
+      - en
+    abbreviation_terms:
+      - ai
+      - a.i.
+      - ki
+      - k.i.
+  CZ:
+    languages:
+      - cs
+      - en
+    context_languages:
+      - cs
+      - en
+  PL:
+    languages:
+      - pl
+      - en
+    context_languages:
+      - pl
+      - en
+  HU:
+    languages:
+      - hu
+      - en
+    context_languages:
+      - hu
+      - en
+  SI:
+    languages:
+      - sl
+      - en
+    context_languages:
+      - sl
+      - en
+  UK:
+    languages:
+      - en
+    context_languages:
+      - en

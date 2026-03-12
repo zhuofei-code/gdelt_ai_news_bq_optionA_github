@@ -28,6 +28,7 @@ An additional comparison variant is also included:
 
 - `config/sources_v2_optionA.yaml`: the `11 x 10` outlet source file used in the final run
 - `config/sources_v3_mainstream5.yaml`: the `11 x 5` mainstream-only source file
+- `config/country_language_rules_v2.yaml`: seed `v2` country-aware keyword rules for multilingual context and abbreviations
 - `docs/source_selection_optionA.md`: recorded mainstream and specialist outlet choices by country
 - `docs/keyword_strategy_report.md`: production keyword strategy used in BigQuery scanning
 - `docs/keyword_strategy_improvement_plan.md`: roadmap for reducing language-related undercount in non-English coverage
@@ -65,6 +66,15 @@ It also supports runtime date overrides:
 START_DATE_UTC=2018-06-01T00:00:00Z
 END_DATE_UTC=2026-04-01T00:00:00Z
 OUTPUT_SUFFIX=optionA
+python code/run_gdelt_bigquery.py
+```
+
+To test the seed `v2` multilingual keyword design without replacing the current
+released rule base:
+
+```bash
+KEYWORD_RULES_FILE=config/country_language_rules_v2.yaml
+OUTPUT_SUFFIX=optionA_v2
 python code/run_gdelt_bigquery.py
 ```
 

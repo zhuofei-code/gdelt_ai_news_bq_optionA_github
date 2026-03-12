@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import json
 import math
 import os
 import re
@@ -67,6 +68,7 @@ MAX_TOTAL_BYTES_BUDGET = int((BUDGET_GBP_LIMIT * GBP_TO_USD / BQ_ONDEMAND_USD_PE
 
 # Match AI and A.I. as standalone tokens (RE2-safe, lowercase)
 AI_ABBREV_REGEX = r"(?:^|[^a-z0-9])(?:ai|a\.i\.)(?:[^a-z0-9]|$)"
+DEFAULT_ABBREVIATION_TERMS = ["ai", "a.i."]
 
 # Optional explicit project override (otherwise uses ADC default project)
 BIGQUERY_PROJECT = os.getenv("BQ_PROJECT", "")
@@ -104,6 +106,13 @@ if sources_file_override:
     SOURCES_PATH = sources_path_candidate.resolve()
 else:
     SOURCES_PATH = CONFIG_DIR / "sources_v2_optionA.yaml"
+keyword_rules_file_override = os.getenv("KEYWORD_RULES_FILE", "").strip()
+KEYWORD_RULES_PATH: Path | None = None
+if keyword_rules_file_override:
+    keyword_rules_path_candidate = Path(keyword_rules_file_override)
+    if not keyword_rules_path_candidate.is_absolute():
+        keyword_rules_path_candidate = PACKAGE_ROOT / keyword_rules_path_candidate
+    KEYWORD_RULES_PATH = keyword_rules_path_candidate.resolve()
 output_suffix_raw = os.getenv("OUTPUT_SUFFIX", "").strip()
 OUTPUT_SUFFIX = ""
 if output_suffix_raw:
@@ -144,6 +153,11 @@ def load_keywords(file_path: Path) -> list[str]:
     return keywords
 
 
+def normalize_phrase_list(values: list[Any]) -> list[str]:
+    phrases = [str(value).strip().lower() for value in values if str(value).strip()]
+    return dedupe_preserve_order(phrases)
+
+
 def dedupe_preserve_order(values: list[str]) -> list[str]:
     seen: set[str] = set()
     out: list[str] = []
@@ -168,6 +182,170 @@ def build_regex_from_phrases(phrases: list[str]) -> str:
         raise RuntimeError("No phrases available to build regex")
     patterns = [make_boundary_pattern(phrase) for phrase in clean_phrases]
     return "(" + "|".join(patterns) + ")"
+
+
+def resolve_config_reference(base_dir: Path, file_ref: str) -> Path:
+    candidate = Path(file_ref)
+    if not candidate.is_absolute():
+        candidate = base_dir / candidate
+    return candidate.resolve()
+
+
+def load_keywords_from_files(file_paths: list[Path]) -> list[str]:
+    phrases: list[str] = []
+    for file_path in file_paths:
+        phrases.extend(load_keywords(file_path))
+    return dedupe_preserve_order(phrases)
+
+
+def build_country_keyword_rules(
+    countries: dict[str, Any],
+) -> tuple[dict[str, dict[str, Any]], dict[str, Any]]:
+    if KEYWORD_RULES_PATH is None:
+        strict_keywords = load_keywords(KEYWORDS_STRICT_PATH)
+        if SMOKE_TEST and SMOKE_KEYWORD_LIMIT > 0:
+            strict_keywords = strict_keywords[:SMOKE_KEYWORD_LIMIT]
+
+        context_keywords = load_keywords(KEYWORDS_CONTEXT_PATH)
+        strict_regex = build_regex_from_phrases(strict_keywords)
+        context_regex = build_regex_from_phrases(context_keywords)
+
+        country_rules = {
+            country_code: {
+                "strict_keywords": list(strict_keywords),
+                "context_keywords": list(context_keywords),
+                "abbreviation_terms": list(DEFAULT_ABBREVIATION_TERMS),
+                "strict_regex": strict_regex,
+                "context_regex": context_regex,
+                "ai_abbrev_regex": AI_ABBREV_REGEX,
+                "languages": ["en"],
+                "context_languages": ["en"],
+            }
+            for country_code in countries
+        }
+        strategy_info = {
+            "version": "legacy_global",
+            "rules_file": "",
+            "strict_base_files": [str(KEYWORDS_STRICT_PATH.name)],
+            "context_files": {"en": str(KEYWORDS_CONTEXT_PATH.name)},
+            "default_abbreviation_terms": list(DEFAULT_ABBREVIATION_TERMS),
+            "strict_keyword_count": len(strict_keywords),
+            "context_languages_used": ["en"],
+        }
+        return country_rules, strategy_info
+
+    with KEYWORD_RULES_PATH.open("r", encoding="utf-8") as f:
+        rules_data = yaml.safe_load(f) or {}
+
+    metadata = rules_data.get("metadata", {})
+    country_cfg_map = rules_data.get("countries", {})
+    if not isinstance(country_cfg_map, dict):
+        raise RuntimeError(f"Invalid keyword rules file: missing countries mapping in {KEYWORD_RULES_PATH}")
+
+    rules_base_dir = KEYWORD_RULES_PATH.parent
+    strict_base_refs = metadata.get("strict_base_files", [KEYWORDS_STRICT_PATH.name])
+    if not isinstance(strict_base_refs, list) or not strict_base_refs:
+        raise RuntimeError(f"Invalid keyword rules file: strict_base_files missing in {KEYWORD_RULES_PATH}")
+    strict_base_paths = [resolve_config_reference(rules_base_dir, str(ref)) for ref in strict_base_refs]
+    strict_base_keywords = load_keywords_from_files(strict_base_paths)
+
+    context_file_map_raw = metadata.get("context_files", {})
+    if not isinstance(context_file_map_raw, dict) or not context_file_map_raw:
+        raise RuntimeError(f"Invalid keyword rules file: context_files missing in {KEYWORD_RULES_PATH}")
+    context_file_map = {
+        str(lang).strip().lower(): resolve_config_reference(rules_base_dir, str(file_ref))
+        for lang, file_ref in context_file_map_raw.items()
+        if str(lang).strip()
+    }
+    if not context_file_map:
+        raise RuntimeError(f"Invalid keyword rules file: no usable context_files in {KEYWORD_RULES_PATH}")
+
+    default_context_languages = normalize_phrase_list(metadata.get("default_context_languages", ["en"]))
+    default_abbreviation_terms = normalize_phrase_list(
+        metadata.get("default_abbreviation_terms", DEFAULT_ABBREVIATION_TERMS)
+    )
+    if not default_abbreviation_terms:
+        raise RuntimeError(f"Invalid keyword rules file: no default_abbreviation_terms in {KEYWORD_RULES_PATH}")
+
+    country_rules: dict[str, dict[str, Any]] = {}
+    context_languages_used: set[str] = set()
+
+    for country_code in countries:
+        rule_cfg = country_cfg_map.get(country_code, {})
+        if rule_cfg is None:
+            rule_cfg = {}
+        if not isinstance(rule_cfg, dict):
+            raise RuntimeError(
+                f"Invalid keyword rules file: country rule for {country_code} must be a mapping"
+            )
+
+        strict_terms = list(strict_base_keywords)
+        strict_extra_file_refs = rule_cfg.get("strict_extra_files", [])
+        if strict_extra_file_refs:
+            if not isinstance(strict_extra_file_refs, list):
+                raise RuntimeError(
+                    f"Invalid keyword rules file: strict_extra_files for {country_code} must be a list"
+                )
+            strict_extra_paths = [
+                resolve_config_reference(rules_base_dir, str(file_ref)) for file_ref in strict_extra_file_refs
+            ]
+            strict_terms.extend(load_keywords_from_files(strict_extra_paths))
+        strict_terms.extend(normalize_phrase_list(rule_cfg.get("strict_extra_terms", [])))
+        strict_terms = dedupe_preserve_order(strict_terms)
+        if SMOKE_TEST and SMOKE_KEYWORD_LIMIT > 0:
+            strict_terms = strict_terms[:SMOKE_KEYWORD_LIMIT]
+
+        context_languages = normalize_phrase_list(rule_cfg.get("context_languages", default_context_languages))
+        if not context_languages:
+            raise RuntimeError(f"Invalid keyword rules file: context_languages empty for {country_code}")
+
+        context_paths: list[Path] = []
+        for language_code in context_languages:
+            context_path = context_file_map.get(language_code)
+            if context_path is None:
+                raise RuntimeError(
+                    f"Invalid keyword rules file: no context file for language '{language_code}'"
+                )
+            context_paths.append(context_path)
+        context_terms = load_keywords_from_files(context_paths)
+        context_terms.extend(normalize_phrase_list(rule_cfg.get("context_extra_terms", [])))
+        context_terms = dedupe_preserve_order(context_terms)
+
+        abbreviation_terms_raw = rule_cfg.get("abbreviation_terms")
+        if abbreviation_terms_raw is None:
+            abbreviation_terms = list(default_abbreviation_terms)
+        else:
+            abbreviation_terms = normalize_phrase_list(abbreviation_terms_raw)
+        if not abbreviation_terms:
+            raise RuntimeError(f"Invalid keyword rules file: abbreviation_terms empty for {country_code}")
+
+        languages = normalize_phrase_list(rule_cfg.get("languages", []))
+        strict_regex = build_regex_from_phrases(strict_terms)
+        context_regex = build_regex_from_phrases(context_terms)
+        ai_abbrev_regex = build_regex_from_phrases(abbreviation_terms)
+
+        country_rules[country_code] = {
+            "strict_keywords": strict_terms,
+            "context_keywords": context_terms,
+            "abbreviation_terms": abbreviation_terms,
+            "strict_regex": strict_regex,
+            "context_regex": context_regex,
+            "ai_abbrev_regex": ai_abbrev_regex,
+            "languages": languages,
+            "context_languages": context_languages,
+        }
+        context_languages_used.update(context_languages)
+
+    strategy_info = {
+        "version": str(metadata.get("version", "country_rules")),
+        "rules_file": str(KEYWORD_RULES_PATH),
+        "strict_base_files": [str(path.name) for path in strict_base_paths],
+        "context_files": {lang: str(path.name) for lang, path in context_file_map.items()},
+        "default_abbreviation_terms": list(default_abbreviation_terms),
+        "strict_keyword_count": len(strict_base_keywords),
+        "context_languages_used": sorted(context_languages_used),
+    }
+    return country_rules, strategy_info
 
 
 def parse_utc_datetime(value: str) -> datetime:
@@ -267,6 +445,21 @@ def build_country_domain_map_values(countries: dict[str, Any]) -> list[str]:
                 values.append(f"{country_code}|{domain_value}")
     if not values:
         raise RuntimeError("No domains available to build country-domain map values")
+    return values
+
+
+def build_country_rule_map_values(country_rules: dict[str, dict[str, Any]]) -> list[str]:
+    values: list[str] = []
+    for country_code, rule in country_rules.items():
+        payload = {
+            "country": country_code,
+            "strict_regex": rule["strict_regex"],
+            "context_regex": rule["context_regex"],
+            "ai_abbrev_regex": rule["ai_abbrev_regex"],
+        }
+        values.append(json.dumps(payload, ensure_ascii=False, separators=(",", ":")))
+    if not values:
+        raise RuntimeError("No keyword rules available to build country-rule map values")
     return values
 
 
@@ -480,9 +673,7 @@ def run_all_countries_query(
     client: bigquery.Client,
     sql: str,
     country_domain_map_values: list[str],
-    strict_regex: str,
-    context_regex: str,
-    ai_abbrev_regex: str,
+    country_rule_map_values: list[str],
     start_dt: datetime,
     end_dt: datetime,
 ) -> pd.DataFrame:
@@ -490,9 +681,7 @@ def run_all_countries_query(
         bigquery.ScalarQueryParameter("start_date", "DATE", start_dt.date()),
         bigquery.ScalarQueryParameter("end_date", "DATE", end_dt.date()),
         bigquery.ArrayQueryParameter("country_domain_map", "STRING", country_domain_map_values),
-        bigquery.ScalarQueryParameter("strict_regex", "STRING", strict_regex),
-        bigquery.ScalarQueryParameter("context_regex", "STRING", context_regex),
-        bigquery.ScalarQueryParameter("ai_abbrev_regex", "STRING", ai_abbrev_regex),
+        bigquery.ArrayQueryParameter("country_rule_map", "STRING", country_rule_map_values),
     ]
     job_config = bigquery.QueryJobConfig(
         query_parameters=query_params,
@@ -537,9 +726,7 @@ def run_all_countries_query_with_retries(
     client: bigquery.Client,
     sql: str,
     country_domain_map_values: list[str],
-    strict_regex: str,
-    context_regex: str,
-    ai_abbrev_regex: str,
+    country_rule_map_values: list[str],
     start_dt: datetime,
     end_dt: datetime,
     retry_label: str,
@@ -563,9 +750,7 @@ def run_all_countries_query_with_retries(
                 client=client,
                 sql=sql,
                 country_domain_map_values=country_domain_map_values,
-                strict_regex=strict_regex,
-                context_regex=context_regex,
-                ai_abbrev_regex=ai_abbrev_regex,
+                country_rule_map_values=country_rule_map_values,
                 start_dt=start_dt,
                 end_dt=end_dt,
             )
@@ -593,9 +778,7 @@ def estimate_all_countries_query_bytes(
     client: bigquery.Client,
     sql: str,
     country_domain_map_values: list[str],
-    strict_regex: str,
-    context_regex: str,
-    ai_abbrev_regex: str,
+    country_rule_map_values: list[str],
     start_dt: datetime,
     end_dt: datetime,
 ) -> int:
@@ -603,9 +786,7 @@ def estimate_all_countries_query_bytes(
         bigquery.ScalarQueryParameter("start_date", "DATE", start_dt.date()),
         bigquery.ScalarQueryParameter("end_date", "DATE", end_dt.date()),
         bigquery.ArrayQueryParameter("country_domain_map", "STRING", country_domain_map_values),
-        bigquery.ScalarQueryParameter("strict_regex", "STRING", strict_regex),
-        bigquery.ScalarQueryParameter("context_regex", "STRING", context_regex),
-        bigquery.ScalarQueryParameter("ai_abbrev_regex", "STRING", ai_abbrev_regex),
+        bigquery.ArrayQueryParameter("country_rule_map", "STRING", country_rule_map_values),
     ]
     job_config = bigquery.QueryJobConfig(
         query_parameters=query_params,
@@ -621,9 +802,7 @@ def run_all_countries_query_chunked(
     client: bigquery.Client,
     sql: str,
     country_domain_map_values: list[str],
-    strict_regex: str,
-    context_regex: str,
-    ai_abbrev_regex: str,
+    country_rule_map_values: list[str],
     start_dt: datetime,
     end_dt: datetime,
     initial_chunk_months: int,
@@ -655,9 +834,7 @@ def run_all_countries_query_chunked(
                 client=client,
                 sql=sql,
                 country_domain_map_values=country_domain_map_values,
-                strict_regex=strict_regex,
-                context_regex=context_regex,
-                ai_abbrev_regex=ai_abbrev_regex,
+                country_rule_map_values=country_rule_map_values,
                 start_dt=chunk_start_dt,
                 end_dt=chunk_end_dt,
             )
@@ -696,9 +873,7 @@ def run_all_countries_query_chunked(
             client=client,
             sql=sql,
             country_domain_map_values=country_domain_map_values,
-            strict_regex=strict_regex,
-            context_regex=context_regex,
-            ai_abbrev_regex=ai_abbrev_regex,
+            country_rule_map_values=country_rule_map_values,
             start_dt=chunk_start_dt,
             end_dt=chunk_end_dt,
             retry_label=f"ALL {chunk_label}",
@@ -927,13 +1102,14 @@ def run_debug_counts(
     client: bigquery.Client,
     sql: str,
     all_sources: dict[str, Any],
-    strict_regex: str,
-    context_regex: str,
-    ai_abbrev_regex: str,
+    country_rules: dict[str, dict[str, Any]],
 ) -> None:
     cfg = all_sources.get(DEBUG_COUNTRY)
     if not cfg:
         raise RuntimeError(f"DEBUG_COUNTRY not found in sources.yaml: {DEBUG_COUNTRY}")
+    country_rule = country_rules.get(DEBUG_COUNTRY)
+    if not country_rule:
+        raise RuntimeError(f"DEBUG_COUNTRY not found in keyword rules: {DEBUG_COUNTRY}")
 
     domains = [str(d).lower() for d in cfg.get("domains", [])]
     if DEBUG_DOMAIN_LIMIT > 0:
@@ -952,9 +1128,9 @@ def run_debug_counts(
         client=client,
         sql=sql,
         domains=domains,
-        strict_regex=strict_regex,
-        context_regex=context_regex,
-        ai_abbrev_regex=ai_abbrev_regex,
+        strict_regex=country_rule["strict_regex"],
+        context_regex=country_rule["context_regex"],
+        ai_abbrev_regex=country_rule["ai_abbrev_regex"],
         start_dt=debug_start,
         end_exclusive_dt=debug_end_exclusive,
     )
@@ -978,9 +1154,7 @@ def run_sanity_check(
     client: bigquery.Client,
     sql: str,
     all_sources: dict[str, Any],
-    strict_regex: str,
-    context_regex: str,
-    ai_abbrev_regex: str,
+    country_rules: dict[str, dict[str, Any]],
 ) -> None:
     mode = SANITY_MODE.strip().lower()
     if mode not in {"strict", "balanced"}:
@@ -989,6 +1163,9 @@ def run_sanity_check(
     country_cfg = all_sources.get(SANITY_COUNTRY)
     if not country_cfg:
         raise RuntimeError(f"SANITY_COUNTRY not found in sources.yaml: {SANITY_COUNTRY}")
+    country_rule = country_rules.get(SANITY_COUNTRY)
+    if not country_rule:
+        raise RuntimeError(f"SANITY_COUNTRY not found in keyword rules: {SANITY_COUNTRY}")
 
     domains = [str(d).lower() for d in country_cfg.get("domains", [])]
     if SANITY_DOMAIN_LIMIT > 0:
@@ -1008,9 +1185,9 @@ def run_sanity_check(
         client=client,
         sql=sql,
         domains=domains,
-        strict_regex=strict_regex,
-        context_regex=context_regex,
-        ai_abbrev_regex=ai_abbrev_regex,
+        strict_regex=country_rule["strict_regex"],
+        context_regex=country_rule["context_regex"],
+        ai_abbrev_regex=country_rule["ai_abbrev_regex"],
         sanity_mode=mode,
         start_dt=sanity_start,
         end_exclusive_dt=sanity_end_exclusive,
@@ -1155,15 +1332,10 @@ def main() -> None:
     if KEYWORDS_MODE.strip().lower() != "strict+balanced":
         raise RuntimeError("This workflow expects KEYWORDS_MODE='strict+balanced'")
 
-    strict_keywords = load_keywords(KEYWORDS_STRICT_PATH)
-    if SMOKE_TEST and SMOKE_KEYWORD_LIMIT > 0:
-        strict_keywords = strict_keywords[:SMOKE_KEYWORD_LIMIT]
-
-    context_keywords = load_keywords(KEYWORDS_CONTEXT_PATH)
-
-    strict_regex = build_regex_from_phrases(strict_keywords)
-    context_regex = build_regex_from_phrases(context_keywords)
-    ai_abbrev_regex = AI_ABBREV_REGEX
+    country_rules, keyword_strategy = build_country_keyword_rules(countries)
+    strict_keyword_counts = sorted({len(rule["strict_keywords"]) for rule in country_rules.values()})
+    context_keyword_counts = sorted({len(rule["context_keywords"]) for rule in country_rules.values()})
+    abbreviation_term_counts = sorted({len(rule["abbreviation_terms"]) for rule in country_rules.values()})
 
     start_dt, end_dt = get_time_window(SMOKE_TEST)
     months = month_starts(start_dt, end_dt)
@@ -1173,10 +1345,13 @@ def main() -> None:
     print(f"Countries: {', '.join(countries.keys())}")
     print(f"Month windows: {len(months)}")
     print(
-        "Keyword sets: "
-        f"strict={len(strict_keywords)} ({KEYWORDS_STRICT_PATH.name}), "
-        f"context={len(context_keywords)} ({KEYWORDS_CONTEXT_PATH.name})"
+        "Keyword strategy: "
+        f"version={keyword_strategy['version']}, "
+        f"rules_file={keyword_strategy['rules_file'] or 'legacy_global'}"
     )
+    print(f"Strict keyword counts by country: {strict_keyword_counts}")
+    print(f"Context keyword counts by country: {context_keyword_counts}")
+    print(f"Abbreviation term counts by country: {abbreviation_term_counts}")
     print(f"Maximum bytes billed per query: {MAXIMUM_BYTES_BILLED}")
     print(f"GDELT table: {GDELT_TABLE}")
     print(
@@ -1195,6 +1370,13 @@ def main() -> None:
     log_lines.append(f"maximum_bytes_billed={MAXIMUM_BYTES_BILLED}")
     log_lines.append(f"gdelt_table={GDELT_TABLE}")
     log_lines.append(f"sources_file={SOURCES_PATH}")
+    log_lines.append(f"keyword_strategy_version={keyword_strategy['version']}")
+    log_lines.append(f"keyword_rules_file={keyword_strategy['rules_file'] or 'legacy_global'}")
+    log_lines.append(f"keyword_strict_base_files={','.join(keyword_strategy['strict_base_files'])}")
+    log_lines.append(f"keyword_context_languages={','.join(keyword_strategy['context_languages_used'])}")
+    log_lines.append(
+        f"default_abbreviation_terms={','.join(keyword_strategy['default_abbreviation_terms'])}"
+    )
     log_lines.append(f"output_suffix={OUTPUT_SUFFIX}")
     log_lines.append(f"auto_monthly_fallback_on_bytes_limit={AUTO_MONTHLY_FALLBACK_ON_BYTES_LIMIT}")
     log_lines.append(f"initial_chunk_months={INITIAL_CHUNK_MONTHS}")
@@ -1206,8 +1388,18 @@ def main() -> None:
     templates = load_sql_templates()
     all_monthly_sql = render_all_countries_sql(get_sql_template(templates, "all_countries_monthly_panel"))
     country_domain_map_values = build_country_domain_map_values(countries)
+    country_rule_map_values = build_country_rule_map_values(country_rules)
     print(f"Country-domain mappings: {len(country_domain_map_values)}")
     log_lines.append(f"country_domain_mapping_count={len(country_domain_map_values)}")
+    log_lines.append(f"country_rule_mapping_count={len(country_rule_map_values)}")
+    for country_code in countries:
+        rule = country_rules[country_code]
+        log_lines.append(
+            f"keyword_rule_{country_code}=strict:{len(rule['strict_keywords'])},"
+            f"context:{len(rule['context_keywords'])},"
+            f"abbrev:{'|'.join(rule['abbreviation_terms'])},"
+            f"context_languages:{'|'.join(rule['context_languages'])}"
+        )
     sanity_sql = render_sql_template(get_sql_template(templates, "sanity_sample")) if SANITY_CHECK else ""
     debug_sql = render_sql_template(get_sql_template(templates, "debug_counts")) if DEBUG_COUNTS else ""
 
@@ -1245,9 +1437,7 @@ def main() -> None:
             client=client,
             sql=debug_sql,
             all_sources=all_sources,
-            strict_regex=strict_regex,
-            context_regex=context_regex,
-            ai_abbrev_regex=ai_abbrev_regex,
+            country_rules=country_rules,
         )
 
     if SANITY_CHECK:
@@ -1255,9 +1445,7 @@ def main() -> None:
             client=client,
             sql=sanity_sql,
             all_sources=all_sources,
-            strict_regex=strict_regex,
-            context_regex=context_regex,
-            ai_abbrev_regex=ai_abbrev_regex,
+            country_rules=country_rules,
         )
 
     estimated_all_bytes: int | None = None
@@ -1279,9 +1467,7 @@ def main() -> None:
             client=client,
             sql=all_monthly_sql,
             country_domain_map_values=country_domain_map_values,
-            strict_regex=strict_regex,
-            context_regex=context_regex,
-            ai_abbrev_regex=ai_abbrev_regex,
+            country_rule_map_values=country_rule_map_values,
             start_dt=start_dt,
             end_dt=end_dt,
         )
@@ -1330,9 +1516,7 @@ def main() -> None:
             client=client,
             sql=all_monthly_sql,
             country_domain_map_values=country_domain_map_values,
-            strict_regex=strict_regex,
-            context_regex=context_regex,
-            ai_abbrev_regex=ai_abbrev_regex,
+            country_rule_map_values=country_rule_map_values,
             start_dt=start_dt,
             end_dt=end_dt,
             initial_chunk_months=INITIAL_CHUNK_MONTHS,
@@ -1350,9 +1534,7 @@ def main() -> None:
             client=client,
             sql=all_monthly_sql,
             country_domain_map_values=country_domain_map_values,
-            strict_regex=strict_regex,
-            context_regex=context_regex,
-            ai_abbrev_regex=ai_abbrev_regex,
+            country_rule_map_values=country_rule_map_values,
             start_dt=start_dt,
             end_dt=end_dt,
             retry_label="ALL",
